@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ambar_teste/external/api_github.dart';
 import 'package:ambar_teste/models/repo_model.dart';
 import 'package:ambar_teste/screens/home/widgets/repo_card.dart';
@@ -12,12 +14,25 @@ class ListWidget extends StatefulWidget {
 class _ListWidgetState extends State<ListWidget> {
   List<RepoModel> models = List<RepoModel>();
   ApiGithub api = ApiGithub();
+  bool errorList = false;
+  int _state = 0;
 
-  Future getRepositories()async{
-    models = await api.getRepositories();
+  @override
+  void initState() {
+    super.initState();
+    getRepositories();
   }
 
-    launchURL(String url) async {
+  Future getRepositories() async {
+    models = await api.getRepositories();
+    if (models.isEmpty) {
+      errorList = true;
+    } else {
+      errorList = false;
+    }
+  }
+
+  launchURL(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
     } else {
@@ -28,9 +43,10 @@ class _ListWidgetState extends State<ListWidget> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: getRepositories(),
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (models.isNotEmpty) {
+      future: api.getRepositories(),
+      builder: (BuildContext context, AsyncSnapshot<List<RepoModel>> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            errorList == false) {
           return ListView.builder(
             itemCount: models.length,
             itemBuilder: (context, index) {
@@ -41,10 +57,62 @@ class _ListWidgetState extends State<ListWidget> {
               );
             },
           );
+        } else if (errorList == true) {
+          return Center(
+            child:  new Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: new MaterialButton(
+                child: setUpButtonChild(),
+                onPressed: () {
+                  setState(() {
+                    if (_state == 0) {
+                      animateButton();
+                    }
+                    getRepositories();
+                  });
+                },
+                elevation: 4.0,
+                minWidth: double.infinity,
+                height: 48.0,
+                color: Colors.blue,
+              ),
+            )
+          );
         } else {
           return Center(child: CircularProgressIndicator());
         }
       },
     );
   }
+
+  Widget setUpButtonChild() {
+    if (_state == 0) {
+      return new Text(
+        "Error, tap to retry",
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16.0,
+        ),
+      );
+    } else if (_state == 1) {
+      return CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+      );
+    }
+
+  }
+
+  void animateButton() {
+    setState(() {
+      _state = 1;
+    });
+
+    Timer(Duration(milliseconds: 3300), () {
+      setState(() {
+        _state = 0;
+      });
+    });
+  }
 }
+
+

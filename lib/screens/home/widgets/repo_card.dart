@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 
@@ -19,8 +20,10 @@ class RepoCard extends StatelessWidget {
       child: Container(
         height: 130,
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
+              padding: EdgeInsets.all(8),
               height: 100,
               width: 100,
                 child: CircleAvatar(
@@ -52,7 +55,7 @@ class RepoCard extends StatelessWidget {
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),

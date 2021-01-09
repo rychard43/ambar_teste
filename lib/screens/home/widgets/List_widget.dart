@@ -85,6 +85,7 @@ class _ListWidgetState extends State<ListWidget> {
     );
   }
 
+  // ignore: missing_return
   Widget setUpButtonChild() {
     if (_state == 0) {
       return new Text(
